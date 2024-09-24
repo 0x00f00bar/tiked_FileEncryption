@@ -51,7 +51,7 @@ func Decrypter(path string) (err error) {
 
 	inFile, err := os.Open(path)
 	if err != nil {
-		fmt.Println("error:", err)
+		// fmt.Println("error:", err)
 		return
 	}
 
@@ -68,33 +68,34 @@ func Decrypter(path string) (err error) {
 
 	reader := &cipher.StreamReader{S: stream, R: inFile}
 	if _, err = io.Copy(outFile, reader); err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
+		return
 	}
 	inFile.Close()
 
-	os.Remove(path)
+	// os.Remove(path)
 	return
 }
 
 // Encrypter encrypts a file given its filepatth
-func Encrypter(path string) (err error) {
+func Encrypter(path string) (string, error) {
 	if block == nil {
-		return errors.New("Need to Initialize Block first. Call: InitializeBlock(myKey []byte)")
+		return "", errors.New("Need to Initialize Block first. Call: InitializeBlock(myKey []byte)")
 	}
 
 	inFile, err := os.Open(path)
 	if err != nil {
-		fmt.Println(err)
-		return
+		// fmt.Println(err)
+		return "", err
 	}
 
 	obfuscatePath := filenameObfuscator(path)
 	outFile, err := os.OpenFile(obfuscatePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
-	fmt.Println(outFile.Name())
+	// fmt.Println(outFile.Name())
 
 	if err != nil {
-		fmt.Println(err)
-		return
+		// fmt.Println(err)
+		return "", err
 	}
 
 	stream, iv := initIV()
@@ -102,12 +103,13 @@ func Encrypter(path string) (err error) {
 	writer := &cipher.StreamWriter{S: stream, W: outFile}
 
 	if _, err = io.Copy(writer, inFile); err != nil {
-		fmt.Println(err.Error())
+		// fmt.Println(err.Error())
+		return "", err
 	}
 	inFile.Close()
 	outFile.Close()
-	os.Remove(path)
-	return nil
+	// os.Remove(path)
+	return outFile.Name(), nil
 }
 
 func filenameObfuscator(path string) string {
